@@ -24,7 +24,11 @@ void Tree::add(int value)
 	if (root == nullptr) {
 		root = new Node(value);
 	} else {
-		root->add(value);
+		Node* newNode = root->add(value);
+		if(newNode != nullptr) {
+			newNode->balance();
+			root = newNode->getRoot();
+		}
 	}
 }
 //--------------- QUESTION #3 : Find ------------------------------
@@ -77,4 +81,9 @@ Tree::~Tree()
 TreeIterator Tree::end() const
 {
     return TreeIterator();
+}
+
+int Tree::depth() const
+{
+	return root ? root->levels() : 0;
 }

@@ -1,6 +1,7 @@
 #include <iostream>
 #include <cstdlib>
 #include <sstream>
+#include <set>
 #include "tree.h"
 #include "test.h"
 using namespace std;
@@ -16,6 +17,12 @@ class TestTree : public tests::Test
         test_begin();
         test_next();
         test_iterate();
+        test_rotate_right();
+        test_rotate_left();
+        test_levels();
+        test_gap();
+        test_balance();
+        test_avl();
     }
     private:
     void test_size()
@@ -99,6 +106,117 @@ class TestTree : public tests::Test
             TreeIterator it = t.begin();
             it.next();    
         },"next on invalid iterator throws exception");
+    }
+
+    void test_rotate_left()
+    {
+        Node* root = new Node(10);
+        root->add(5);
+        root->add(15);
+        root->add(12);
+        root->add(20);
+
+        Node* new_root = root->rotate_left();
+        assert_false(root==new_root,"rotation left has been made")  ;
+        assert_equal(15,new_root->value(),"new root is ok");
+        assert_equal(5, new_root->size(),"all values are ok");
+        auto values = {5,10,12,15,20};
+        bool ok = true;
+        for(auto value : values)
+        {
+            auto it = new_root->find(value);
+            ok = ok & it!=TreeIterator() && it.value()==value;
+        }
+        assert_true(ok,"all values found");
+        delete root;
+    }
+
+    void test_rotate_right()
+    {
+        Node* root = new Node(10);
+        root->add(5);
+        root->add(15);
+        root->add(1);
+        root->add(7);
+        auto values = {1,5,7,10,15};
+
+        Node *new_root = root->rotate_right();
+        assert_false(root==new_root,"rotation right has been made")  ;
+        assert_equal(5,new_root->value(),"new root is ok");
+        bool ok = true;
+        for(auto value : values)
+        {
+            auto it = new_root->find(value);
+            ok = ok & it!=TreeIterator() && it.value()==value;
+        }
+        assert_true(ok,"all values found");
+        delete root;
+    }
+
+    void test_levels()
+    {
+        Node* root = new Node(10);
+        assert_equal(1, root->levels(),"1 level");
+        root->add(5);
+        assert_equal(2, root->levels(),"2 levels");
+        root->add(15);
+        root->add(12);
+        root->add(20);
+        assert_equal(3, root->levels(),"3 levels");
+        delete root;
+    }
+
+    void test_gap()
+    {
+        Node* root = new Node(10);
+        assert_equal(0, root->gap(), "root alone, gap ok");
+        root->add(5);
+        assert_equal(1, root->gap(), "root with left only, gap ok");
+        root->add(15);
+        assert_equal(0, root->gap(), "root with left & right, gap ok");
+        root->add(17);
+        assert_equal(-1, root->gap(), "root with more right than left, gap ok");
+        delete root;
+    }
+
+    void test_balance()
+    {
+        Node* root = new Node(10);
+        root->add(5);
+        root->add(15);
+        root->add(1);
+        root->add(7);
+        root->add(0);
+        Node *new_root = root->balance();
+        assert_not_equal(new_root,root,"root has changed");
+        assert_equal(5, new_root->value(),"new root is ok");
+        assert_equal(3, new_root->levels(),"balance is ok");
+        delete new_root;
+    }
+
+    void test_avl()
+    {
+        Tree t;
+        std::set<int> values;
+        for(int i=0;i<1000;i++)
+        {
+            int value = std::rand();
+            t.add(value);
+            values.insert(value);
+        }
+        double theorical_depth =  1.44*log2(t.size()+2)-0.328;
+        assert_true(t.depth()<=theorical_depth,"depth of balanced tree ok");
+
+        bool ok=true;
+        for(int value:values)
+        {
+            if(t.find(value)==t.end()) // ouch
+            {
+                ok=false;
+                break;
+            }
+        }
+        assert_true(ok,"values ok in balanced tree");
     }
 };
 

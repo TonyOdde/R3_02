@@ -1,5 +1,7 @@
 #include "node.h"
 
+#include <algorithm>
+
 //----------------- QUESTION #1 : SIZE ---------------------------
 /**
  * @brief Node::size computes the number of nodes
@@ -18,21 +20,25 @@ int Node::size() const
  * @brief Node::add add a value into the subtree
  * @param value the value to add
  */
-void Node::add(int value)
+Node* Node::add(int value)
 {
+	Node* newNode = nullptr;
 	if (value < _value) {
 		if (_left == nullptr) {
 			_left = new Node(value, this);
+			newNode = _left;
 		} else {
-			_left->add(value);
+			newNode = _left->add(value);
 		}
 	} else if (value > _value) {
 		if (_right == nullptr) {
 			_right = new Node(value, this);
+			newNode = _right;
 		} else {
-			_right->add(value);
+			newNode = _right->add(value);
 		}
 	}
+	return newNode;
 }
 
 //--------------- QUESTION #3 : Find ------------------------------
@@ -104,4 +110,75 @@ Node::~Node()
 {
     delete _left;
     delete _right;
+}
+
+Node* Node::rotate_left() {
+	Node* new_root = _right;
+	_right = new_root->_left;
+	if(new_root->_right != nullptr) {
+		_right->_parent = this;
+	}
+	new_root->_left = this;
+	new_root->_parent = _parent;
+	_parent = new_root;
+	return new_root;
+}
+
+Node* Node::rotate_right()
+{
+	Node* new_root = _left;
+	_left = new_root->_right;
+	if (new_root->_right != nullptr)
+	{
+		new_root->_right->_parent = this;
+	}
+	new_root->_right = this;
+	new_root->_parent = _parent;
+	_parent = new_root;
+	return new_root;
+}
+
+int Node::levels() const {
+	int l_gauche = 0;
+	int l_droit = 0;
+	if(_right != nullptr) l_droit += _right -> levels();
+	if(_left != nullptr) l_gauche += _left -> levels();
+	return 1 + std::max(l_droit, l_gauche);
+}
+
+int Node::gap() const {
+	int l_gauche = 0;
+	int l_droit = 0;
+	if (_left != nullptr) l_gauche += _left -> levels();
+	if (_right != nullptr) l_droit += _right -> levels();
+	return l_gauche - l_droit;
+}
+
+
+Node* Node::balance() {
+	Node* nvlleRacine = this;
+	int ecart = gap();
+	if (ecart < -1) {
+		nvlleRacine = nvlleRacine->rotate_left();
+	}
+	else if (ecart > 1) {
+		nvlleRacine = nvlleRacine->rotate_right();
+	}
+	if (_left != nullptr)
+	{
+		_left = _left->balance();
+	}
+	if (_right != nullptr)
+	{
+		_right = _right->balance();
+	}
+	return nvlleRacine;
+}
+
+Node* Node::getRoot() {
+	Node* root = this;
+	while (root->_parent != nullptr) {
+		root = root -> _parent;
+	}
+	return root;
 }

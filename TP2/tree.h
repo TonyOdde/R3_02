@@ -18,6 +18,7 @@ public:
     int size() const;
     TreeIterator begin() const;
     TreeIterator end() const;
+	int depth() const;
 };
 
 #endif // TREE_H
